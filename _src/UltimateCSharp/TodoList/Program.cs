@@ -17,8 +17,8 @@ do
 		case "A":
 			AddTarefa();
 			break;
-		case "E":
-			ExcluirTarefa();
+		case "R":
+			RemoverTarefa();
 			break;
 		case "S":
 			opcao = "S";
@@ -44,13 +44,19 @@ void MostrarOpcoes()
 
 	Console.WriteLine("[V] Ver todas tarefas");
 	Console.WriteLine("[A] Adicionar tarefa");
-	Console.WriteLine("[E] Excluir tarefa");
+	Console.WriteLine("[R] Remover tarefa");
 	Console.WriteLine("[S] Sair");
 	Console.WriteLine("");
 }
 
 void ListarTarefas()
 {
+	if (IsSemTarefa())
+	{
+		Console.WriteLine("Não foram adicionadas tarefas.");      
+		return;
+	}
+
 	var idx = 1;
 	foreach (var tarefa in _tarefas)
 	{
@@ -70,6 +76,7 @@ void AddTarefa()
 	} while (!IsDescricaoValida(descricao));
 
 	_tarefas.Add(descricao.Trim());
+	Console.WriteLine($"Tarefa adicionada com sucesso: [{descricao}]");
 }
 
 bool IsDescricaoValida(string descricao)
@@ -89,21 +96,37 @@ bool IsDescricaoValida(string descricao)
 	return true;
 }
 
-void ExcluirTarefa()
+void RemoverTarefa()
 {
-	Console.WriteLine("Tarefa ID:");
-	var tarefaId = int.Parse(Console.ReadLine());
+	if (IsSemTarefa())
+	{
+		Console.WriteLine("Não foram adicionadas tarefas.");
+		return;
+	}
+		
+
+	Console.WriteLine("Selecione o Indíce da Tarefa ID:");
+	var tarefaId = int.Parse(Console.ReadLine()); //Selected index cannot be empty
+
 	--tarefaId; 
+
+	if (tarefaId < 0 || tarefaId > _tarefas.Count)
+		Console.WriteLine("Indíce inválido!");
 
 	for (int idx = 0; idx < _tarefas.Count; idx++)
 	{
 		if (idx == tarefaId)
 		{
 			var tarefaExcluida = _tarefas[idx];
-			_tarefas.Remove(_tarefas[idx]);
-			Console.WriteLine($"Tarefa '{tarefaExcluida}' excluída!");
+			_tarefas.Remove(_tarefas[idx]);   
+			Console.WriteLine($"Tarefa removida: [{tarefaExcluida}]");
 			break;
 		}
 	}
+}
+
+bool IsSemTarefa()
+{
+	return _tarefas.Count == 0;	
 }
 
