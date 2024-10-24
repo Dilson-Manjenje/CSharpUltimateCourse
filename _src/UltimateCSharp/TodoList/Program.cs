@@ -1,4 +1,7 @@
-﻿var _tarefas = new List<string>();
+﻿using System.Runtime.ConstrainedExecution;
+
+var _tarefas = new List<string>();
+
 
 Console.WriteLine("Olá!");
 
@@ -36,7 +39,7 @@ Console.ReadKey();
 void MostrarOpcoes()
 {
 	Console.WriteLine("");
-	Console.ForegroundColor = ConsoleColor.Green;
+	Console.ForegroundColor = ConsoleColor.Blue;
 	Console.WriteLine("O que deseja fazer?");
 	Console.ResetColor();
 
@@ -53,43 +56,54 @@ void ListarTarefas()
 {
 	if (IsSemTarefa())
 	{
-		Console.WriteLine("Não foram adicionadas tarefas.");      
+		ShowMsgSemTarefas();
 		return;
 	}
 
-	var idx = 1;
-	foreach (var tarefa in _tarefas)
+	for (int idx = 0; idx < _tarefas.Count; idx++)
 	{
-		Console.WriteLine($"{idx} - {tarefa}.");
-		++idx;
+		Console.WriteLine($"{idx + 1}. {_tarefas[idx]}.");		
 	}
 }
+
+bool IsSemTarefa()
+{
+	return _tarefas.Count == 0;
+}
+
+void ShowMsgSemTarefas()
+{
+	Console.ForegroundColor = ConsoleColor.DarkRed;
+	Console.WriteLine("Não foram adicionadas tarefas.");
+	Console.ResetColor();
+}
+
 
 void AddTarefa()
 {
 	var descricao = string.Empty;
 	do
 	{
-		Console.WriteLine("Tarefa Descrição:");
-		descricao = Console.ReadLine().Trim();
+		Console.WriteLine("Descrição da Tarefa:");
+		descricao = Console.ReadLine().ToLower().Trim();
 
 	} while (!IsDescricaoValida(descricao));
 
-	_tarefas.Add(descricao.Trim());
-	Console.WriteLine($"Tarefa adicionada com sucesso: [{descricao}]");
+	_tarefas.Add(descricao);
+	ShowMsgSucesso("adicionada", descricao);
 }
 
 bool IsDescricaoValida(string descricao)
 {
 	if (string.IsNullOrWhiteSpace(descricao))
 	{
-		Console.WriteLine("Descrição não pode ser vázia");
+		ShowMsgErro("Descrição não pode ser vázia");
 		return false;
 	}
 
 	if (_tarefas.Contains(descricao))
 	{
-		Console.WriteLine("Descrição deve ser única.");
+		ShowMsgErro("Descrição deve ser única.");
 		return false;
 	}
 
@@ -100,33 +114,54 @@ void RemoverTarefa()
 {
 	if (IsSemTarefa())
 	{
-		Console.WriteLine("Não foram adicionadas tarefas.");
+		ShowMsgSemTarefas();
 		return;
 	}
-		
 
-	Console.WriteLine("Selecione o Indíce da Tarefa ID:");
-	var tarefaId = int.Parse(Console.ReadLine()); //Selected index cannot be empty
-
-	--tarefaId; 
-
-	if (tarefaId < 0 || tarefaId > _tarefas.Count)
-		Console.WriteLine("Indíce inválido!");
-
-	for (int idx = 0; idx < _tarefas.Count; idx++)
+	int index = -1;
+	do
 	{
-		if (idx == tarefaId)
-		{
-			var tarefaExcluida = _tarefas[idx];
-			_tarefas.Remove(_tarefas[idx]);   
-			Console.WriteLine($"Tarefa removida: [{tarefaExcluida}]");
-			break;
-		}
-	}
+		Console.WriteLine("Informe o indíce da Tarefa a remover:");
+		ListarTarefas();
+	} while (!IsIndiceValido(out index));
+
+
+	var tarefaPorRemover = _tarefas[--index];
+	_tarefas.Remove(tarefaPorRemover);
+	ShowMsgSucesso("removida", tarefaPorRemover);
+
 }
 
-bool IsSemTarefa()
+bool IsIndiceValido(out int index)
 {
-	return _tarefas.Count == 0;	
+	var userInput = Console.ReadLine();
+
+	if (string.IsNullOrWhiteSpace(userInput))
+	{
+		ShowMsgErro("Indíce não pode ser vázio");
+		index = -1;
+		return false;
+	}
+
+	if (int.TryParse(userInput, out index)) 
+		if (index < 0 || index > _tarefas.Count)
+		{
+			ShowMsgErro("Indíce inválido!");
+			return false;
+		}
+
+	return true;
+}
+void ShowMsgSucesso(string operacao, string tarefa)
+{
+	Console.ForegroundColor = ConsoleColor.Green;
+	Console.WriteLine($"Tarefa {operacao} com sucesso: [{tarefa}]");
+	Console.ResetColor();
 }
 
+void ShowMsgErro(string msg)
+{
+	Console.ForegroundColor = ConsoleColor.Red;
+	Console.WriteLine($"{msg}");
+	Console.ResetColor();
+}
